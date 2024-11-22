@@ -6,14 +6,14 @@ import pickle
 
 
 # Carga de datos
-Xtr, Ytr, Xdev, Ydev, Xte, Yte = prepare_data('data/baseBuche.csv')
+Xtr, Ytr, Xdev, Ydev, Xte, Yte = prepare_data('data/baseDyrk1a.csv')
 
 # Instanciar y entrenar el modelo Random Forest
 rf = RandomForestModel(**RF_PARAMS)
 rf.fit(Xtr, Ytr)
 
 # Guardar el modelo entrenado usando pickle
-modelo_filename = 'models/buche/rf_buche_model.pkl'
+modelo_filename = 'models/buche/rf_dyrk1a_model.pkl'
 with open(modelo_filename, 'wb') as file:
     pickle.dump(rf, file)
 
