@@ -4,7 +4,6 @@ from rdkit import Chem
 from rdkit.Chem import rdFingerprintGenerator
 from sklearn.model_selection import train_test_split
 import numpy as np
-from torch_geometric.data import Data
 
 # Crear el generador de Morgan Fingerprints
 mfpgen = rdFingerprintGenerator.GetMorganGenerator(radius=2, fpSize=2048)
@@ -68,23 +67,3 @@ def prepare_data(filepath):
 
     return X_train, y_train, X_dev, y_dev, X_test, y_test
 
-# Preparar datos para grafos
-def prepare_graph_data(filepath):
-    df = pd.read_csv(filepath, encoding='latin-1', sep=';')
-    df = df[['SMILES', 'Standard Type', 'pChEMBL Value']]
-    df = df[df['Standard Type'] == 'IC50']
-    df.dropna(inplace=True)
-    df = df[~df['SMILES'].str.contains('\.')].reset_index(drop=True)
-    df = df.sample(frac=1, random_state=42).reset_index(drop=True)
-
-    data_list = []
-    for index, row in df.iterrows():
-        fp = calculate_morgan_fingerprint(row['SMILES'])
-        if fp is not None:
-            x = torch.tensor([fp], dtype=torch.float)  # Características del nodo
-            y = torch.tensor([row['pChEMBL Value']], dtype=torch.float)  # Valor objetivo
-            edge_index = torch.tensor([[], []], dtype=torch.long)  # Sin aristas
-            data = Data(x=x, edge_index=edge_index, y=y)
-            data_list.append(data)
-
-    return data_list
