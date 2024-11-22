@@ -13,7 +13,7 @@ rf = RandomForestModel(**RF_PARAMS)
 rf.fit(Xtr, Ytr)
 
 # Guardar el modelo entrenado usando pickle
-modelo_filename = 'models/buche/rf_dyrk1a_model.pkl'
+modelo_filename = 'models/dyrk1a/rf_dyrk1a_model.pkl'
 with open(modelo_filename, 'wb') as file:
     pickle.dump(rf, file)
 
