@@ -5,47 +5,54 @@ import pickle
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 
-
-# Carga de datos
-Xtr, Ytr, Xdev, Ydev, Xte, Yte = prepare_data('data/baseBuche.csv')
+# Carga de datos (usar NumPy directamente)
+Xtr, Ytr, Xdev, Ydev, Xte, Yte = prepare_data('data/baseBuche.csv', use_torch=False)
 
 # Escalador para los datos objetivo
 scaler_y = StandardScaler()
-Ytr_scaled = scaler_y.fit_transform(Ytr.reshape(-1, 1))
+Ytr_scaled = scaler_y.fit_transform(Ytr.reshape(-1, 1))  # Escalar solo los datos de entrenamiento
 
-# Entrenamiento del modelo con datos escalados
+# Instanciar y entrenar el modelo con datos escalados
 gp = GaussianProcessModel(**GP_PARAMS)
 gp.fit(Xtr, Ytr_scaled.ravel())
-# Realizar predicciones en el conjunto de entrenamiento y desescalar
-Y_pred_train_scaled = gp.predict(Xtr)
-Y_pred_train = scaler_y.inverse_transform(Y_pred_train_scaled.reshape(-1, 1))
 
-# Calcular métricas para el conjunto de entrenamiento
-train_mae = mean_absolute_error(Ytr, Y_pred_train)
-train_r2 = r2_score(Ytr, Y_pred_train)
+# Función auxiliar para desescalar y calcular métricas
+def evaluate_model(model, X, Y, scaler):
+    """
+    Realiza predicciones, desescala los valores y calcula las métricas de evaluación.
 
-# Realizar predicciones en el conjunto de desarrollo y desescalar
-Y_pred_dev_scaled = gp.predict(Xdev)
-Y_pred_dev = scaler_y.inverse_transform(Y_pred_dev_scaled.reshape(-1, 1))
+    Args:
+        model: Modelo entrenado.
+        X: Datos de entrada.
+        Y: Datos reales.
+        scaler: Escalador usado para los datos objetivo.
 
-# Calcular métricas para el conjunto de desarrollo
-dev_mae = mean_absolute_error(Ydev, Y_pred_dev)
-dev_r2 = r2_score(Ydev, Y_pred_dev)
-val_loss = mean_squared_error(Ydev, Y_pred_dev)
+    Returns:
+        dict: Métricas calculadas.
+    """
+    # Predicciones escaladas
+    Y_pred_scaled = model.predict(X)
+    # Desescalar las predicciones
+    Y_pred = scaler.inverse_transform(Y_pred_scaled.reshape(-1, 1))
+    # Calcular métricas
+    metrics = {
+        'MAE': mean_absolute_error(Y, Y_pred),
+        'R2': r2_score(Y, Y_pred),
+        'MSE': mean_squared_error(Y, Y_pred),
+    }
+    return metrics
 
-# Realizar predicciones en el conjunto de prueba y desescalar
-Y_pred_test_scaled = gp.predict(Xte)
-Y_pred_test = scaler_y.inverse_transform(Y_pred_test_scaled.reshape(-1, 1))
+# Evaluar en los conjuntos de entrenamiento, desarrollo y prueba
+train_metrics = evaluate_model(gp, Xtr, Ytr, scaler_y)
+dev_metrics = evaluate_model(gp, Xdev, Ydev, scaler_y)
+test_metrics = evaluate_model(gp, Xte, Yte, scaler_y)
 
-# Calcular métricas para el conjunto de prueba
-test_mae = mean_absolute_error(Yte, Y_pred_test)
-test_r2 = r2_score(Yte, Y_pred_test)
+# Imprimir las métricas
+print(f"Conjunto de entrenamiento - MAE: {train_metrics['MAE']:.4f}, R2: {train_metrics['R2']:.4f}")
+print(f"Conjunto de desarrollo - MAE: {dev_metrics['MAE']:.4f}, R2: {dev_metrics['R2']:.4f}, MSE: {dev_metrics['MSE']:.4f}")
+print(f"Conjunto de prueba - MAE: {test_metrics['MAE']:.4f}, R2: {test_metrics['R2']:.4f}")
 
-# Imprimir las métricas deseadas
-print(f"Val_loss (MSE) en el conjunto de desarrollo: {val_loss}")
-print(f"MAE en el conjunto de desarrollo: {dev_mae}")
-print(f"R2 en el conjunto de desarrollo: {dev_r2}")
-
+# Guardar el modelo y el escalador
 modelo_filename = 'models/buche/gaussian_buche_model.pkl'
 scaler_filename = 'models/buche/gaussian_buche_scaler.pkl'
 
@@ -57,5 +64,3 @@ with open(scaler_filename, 'wb') as file:
 
 print(f"Modelo guardado con éxito en {modelo_filename}")
 print(f"Escalador guardado con éxito en {scaler_filename}")
-
-
