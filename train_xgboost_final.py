@@ -12,7 +12,7 @@ xg = XGBoostModel(**XGBOOST_PARAMS)
 xg.fit(Xtr, Ytr)
 
 # Guardar el modelo entrenado usando pickle
-modelo_filename = 'models/xg_model_dyrk1a.pkl'
+modelo_filename = 'models/dyrk1a/xg_model_dyrk1a.pkl'
 with open(modelo_filename, 'wb') as file:
     pickle.dump(xg, file)
 

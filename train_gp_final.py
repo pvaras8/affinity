@@ -6,7 +6,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 
 # Carga de datos (usar NumPy directamente)
-Xtr, Ytr, Xdev, Ydev, Xte, Yte = prepare_data('data/baseBuche.csv', use_torch=False)
+Xtr, Ytr, Xdev, Ydev, Xte, Yte = prepare_data('data/baseDyrk1a.csv', use_torch=False)
 
 # Escalador para los datos objetivo
 scaler_y = StandardScaler()
@@ -53,8 +53,8 @@ print(f"Conjunto de desarrollo - MAE: {dev_metrics['MAE']:.4f}, R2: {dev_metrics
 print(f"Conjunto de prueba - MAE: {test_metrics['MAE']:.4f}, R2: {test_metrics['R2']:.4f}")
 
 # Guardar el modelo y el escalador
-modelo_filename = 'models/buche/gaussian_buche_model.pkl'
-scaler_filename = 'models/buche/gaussian_buche_scaler.pkl'
+modelo_filename = 'models/dyrk1a/gaussian_dyrk1a_model.pkl'
+scaler_filename = 'models/dyrk1a/gaussian_dyrk1a_scaler.pkl'
 
 with open(modelo_filename, 'wb') as file:
     pickle.dump(gp, file)

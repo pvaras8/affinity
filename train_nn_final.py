@@ -51,7 +51,7 @@ for epoch in range(HYPERPARAMETERS['epochs']):
 
 # Guardar el modelo entrenado
 model.to('cpu')  # Mover a CPU para guardarlo
-model_filename = 'models/nn_latente_buche_model.pkl'
+model_filename = 'models/dyrk1a/nn_model_dyrk1a.pkl'
 with open(model_filename, 'wb') as file:
     pickle.dump(model, file)
 
