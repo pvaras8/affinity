@@ -28,7 +28,7 @@ def calculate_morgan_fingerprint(molecule):
 # Construir dataset para modelos tabulares y redes neuronales
 def build_dataset(df, include_y=True, use_torch=False):
     """
-    Construye el dataset basado en las huellas moleculares.
+    Construye el dataset basado en las huellas moleculares y añade Standard Type.
     
     Args:
         df (pd.DataFrame): DataFrame con al menos una columna 'SMILES'.
@@ -36,13 +36,15 @@ def build_dataset(df, include_y=True, use_torch=False):
         use_torch (bool): Devuelve tensores de PyTorch si es True; NumPy si es False.
     
     Returns:
-        X (np.array | torch.Tensor): Huellas moleculares como matriz NumPy o tensor.
+        X (np.array | torch.Tensor): Huellas moleculares + Standard Type.
         Y (np.array | torch.Tensor | None): Valores de la columna 'pChEMBL Value' si include_y es True.
     """
     X = []
-    for smile in df['SMILES']:
-        fp = calculate_morgan_fingerprint(smile)
+    for _, row in df.iterrows():
+        fp = calculate_morgan_fingerprint(row['SMILES'])
         if fp is not None:
+            # Agregar Standard Type como una característica adicional
+            fp.append(row['Standard Type'])  # Se agrega como última columna
             X.append(fp)
 
     if use_torch:
@@ -72,23 +74,30 @@ def prepare_data(filepath, use_torch=False):
     """
     # Leer el archivo CSV
     df = pd.read_csv(filepath, encoding='latin-1', sep=';')
-    df = df[['SMILES', 'Standard Type', 'pChEMBL Value']]
-    df = df[df['Standard Type'] == 'IC50']
-    df = df.dropna()
-    df = df[~df['SMILES'].str.contains('\.')]
-    df = df.reset_index(drop=True)
 
-    # Generar las huellas moleculares
+    # Filtrar solo las filas con IC50 o EC50
+    df = df[df['Standard Type'].isin(['IC50', 'EC50'])]
+
+    # Convertir Standard Type a valores numéricos (IC50=0, EC50=1)
+    df['Standard Type'] = df['Standard Type'].astype('category').cat.codes
+
+    # Seleccionar columnas necesarias y eliminar filas con valores nulos
+    df = df[['SMILES', 'Standard Type', 'pChEMBL Value']].dropna().reset_index(drop=True)
+
+    # Filtrar SMILES que contienen '.' (moléculas múltiples)
+    df = df[~df['SMILES'].str.contains('\.')]
+
+    # Generar las huellas moleculares y agregar Standard Type
     df['MorganFingerprint'] = df['SMILES'].apply(calculate_morgan_fingerprint)
     df = df.dropna(subset=['MorganFingerprint'])
 
     # Preparar los datos para entrenamiento
-    X = np.array(df['MorganFingerprint'].tolist(), dtype=np.float32)
+    X = np.array([fp + [stype] for fp, stype in zip(df['MorganFingerprint'].tolist(), df['Standard Type'])], dtype=np.float32)
     y = df['pChEMBL Value'].values.astype(np.float32)
 
     # División aleatoria en entrenamiento, validación y prueba (80%, 10%, 10%)
-    X_train, X_temp, y_train, y_temp = train_test_split(X, y, test_size=0.2, random_state=42)
-    X_dev, X_test, y_dev, y_test = train_test_split(X_temp, y_temp, test_size=0.5, random_state=42)
+    X_train, X_temp, y_train, y_temp = train_test_split(X, y, test_size=0.2)
+    X_dev, X_test, y_dev, y_test = train_test_split(X_temp, y_temp, test_size=0.5)
 
     if use_torch:
         # Convertir a tensores de PyTorch
