@@ -5,14 +5,14 @@ from sklearn.metrics import mean_absolute_error, r2_score
 import pickle
 
 # Carga de datos (usar NumPy directamente)
-Xtr, Ytr, Xdev, Ydev, Xte, Yte = prepare_data('data/baseBuche.csv', use_torch=False)
+Xtr, Ytr, Xdev, Ydev, Xte, Yte = prepare_data('data/baseDyrk1a.csv', use_torch=False)
 
 # Instanciar y entrenar el modelo XGBoost
 xg = XGBoostModel(**XGBOOST_PARAMS)
 xg.fit(Xtr, Ytr)
 
 # Guardar el modelo entrenado usando pickle
-modelo_filename = 'models/buche/xg_model_buche.pkl'
+modelo_filename = 'models/dyrk1a/xg_model_dyrk1a.pkl'
 with open(modelo_filename, 'wb') as file:
     pickle.dump(xg, file)
 

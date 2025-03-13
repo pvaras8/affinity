@@ -79,7 +79,7 @@ def prepare_data(filepath, use_torch=False):
     df = df[df['Standard Type'].isin(['IC50', 'EC50'])]
 
     # Convertir Standard Type a valores numéricos (IC50=0, EC50=1)
-    df['Standard Type'] = df['Standard Type'].astype('category').cat.codes
+    df['Standard Type'] = df['Standard Type'].map({'IC50': 0, 'EC50': 1})
 
     # Seleccionar columnas necesarias y eliminar filas con valores nulos
     df = df[['SMILES', 'Standard Type', 'pChEMBL Value']].dropna().reset_index(drop=True)
