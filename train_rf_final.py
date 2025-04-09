@@ -5,7 +5,7 @@ from sklearn.metrics import mean_absolute_error, r2_score
 import pickle
 
 # Carga de datos (usar NumPy directamente)
-Xtr, Ytr, Xdev, Ydev, Xte, Yte = prepare_data('data/baseDyrk1a.csv', use_torch=False)
+Xtr, Ytr, Xdev, Ydev, Xte, Yte = prepare_data('data/basedyrk1a.csv', use_torch=False)
 
 # Instanciar y entrenar el modelo Random Forest
 rf = RandomForestModel(**RF_PARAMS)
